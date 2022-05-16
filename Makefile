@@ -1,9 +1,3 @@
-#Clone the easy-rsa repo in github
-.PHONY: init
-init:
-	git clone git@github.com:OpenVPN/easy-rsa.git
-	cd easy-rsa/easyrsa3
-	
 #Generating init-pki and Building CA and Sv&Cl key-pairs
 .PHONY: build
 build:
