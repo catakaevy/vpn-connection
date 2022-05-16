@@ -1,3 +1,9 @@
+#Clone the easy-rsa repo in github
+.PHONY: init
+init:
+	git clone git@github.com:OpenVPN/easy-rsa.git
+	cd easy-rsa/easyrsa3
+	
 #Generating init-pki and Building CA and Sv&Cl key-pairs
 .PHONY: build
 build:
@@ -18,7 +24,7 @@ send:
 clean: rm -rf pki
 
 #Deleting all server-side certificate in aws with this key not yet how to do...
-.PHONY: delete1
+.PHONY: delete_acm
 delete1: 
 	aws acm list-certificates
 #I want to delete all certifictes simultaneously however, I could not even execute delete-certificate command with Error "no resource found..".
