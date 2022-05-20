@@ -1,6 +1,13 @@
+#Cloning & Change Dir to clone_dir
+.PHONY: start
+start:
+	git clone git@github.com:OpenVPN/easy-rsa.git
+	cd easy-rsa/easyrsa3 && pwd
+
 #Generating init-pki and Building CA and Sv&Cl key-pairs
 .PHONY: build
 build:
+	make start
 	./easyrsa init-pki
 	./easyrsa build-ca nopass
 	./easyrsa build-server-full server nopass
