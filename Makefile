@@ -17,7 +17,7 @@ build:
 	cd easy-rsa/easyrsa3 && pwd && ./easyrsa build-server-full server nopass
 	cd easy-rsa/easyrsa3 && pwd && ./easyrsa build-client-full client1.domain.tld nopass
 	cd easy-rsa/easyrsa3 && pwd && aws acm import-certificate --certificate fileb://pki/issued/server.crt --private-key fileb://pki/private/server.key --certificate-chain fileb://pki/ca.crt > arnmemo.json
-	pwd && python3 arn_catch.py
+	pwd && python3 catch_arn.py
 
 #Cleaning directory after generating key
 .PHONY: clean
