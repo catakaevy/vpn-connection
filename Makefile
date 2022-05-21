@@ -17,7 +17,7 @@ build:
 	cd easy-rsa/easyrsa3 && pwd && ./easyrsa build-server-full server nopass
 	cd easy-rsa/easyrsa3 && pwd && ./easyrsa build-client-full client1.domain.tld nopass
 	cd easy-rsa/easyrsa3 && pwd && aws acm import-certificate --certificate fileb://pki/issued/server.crt --private-key fileb://pki/private/server.key --certificate-chain fileb://pki/ca.crt > arnmemo.json
-	python arn_catch.py
+	pwd && python3 arn_catch.py
 
 #Cleaning directory after generating key
 .PHONY: clean
@@ -28,12 +28,15 @@ clean:
 .PHONY: delete_acm
 delete_acm:
 	aws acm delete-certificate --certificate-arn $(shell cat arn.txt)
-#.PHONY: delete2
-#delete2:
-#	aws acm delete-certificate --certificate-arn $(shell sed -l 84 $(
 
 #Building Clinent-VPN Endpoint in aws
-
+.PHONY: endpoint
+endpoint:
+	aws ec2 create-client-vpn-endpoint \
+		--client-cidr-block $(CIDR_BLK) \
+		--server-certificate-arn $(shell cat arn.txt) \
+		--authentication-options Type=certificate-authentication,MutualAuthentication={ClientRootCertificateChainArn=$(shell cat arn.txt)} \
+		--connection-log-options Enabled=false
 
 #Moving downloaded-client-config.ovpn to the right directory
 .PHONY: mv_set
@@ -42,5 +45,7 @@ mv_set:
 
 #cert $(VPN_CONNETION_PATH)/easy-rsa/easyrsa3/pki/issued/client1.domain.tld.crt
 #key $(VPN_CONNETION_PATH)/easy-rsa/easyrsa3/pki/private/client1.domain.tld.key
+
+#/Users/abetakamitsu/home/vpn-connection
 
 
