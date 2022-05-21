@@ -46,6 +46,6 @@ mv_set:
 #cert $(VPN_CONNETION_PATH)/easy-rsa/easyrsa3/pki/issued/client1.domain.tld.crt
 #key $(VPN_CONNETION_PATH)/easy-rsa/easyrsa3/pki/private/client1.domain.tld.key
 
-#/Users/abetakamitsu/home/vpn-connection
+
 
 
