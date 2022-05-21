@@ -43,6 +43,13 @@ endpoint:
 mv_set:
 	mv $(DOWNLOAD_PATH)/downloaded-client-config.ovpn .
 
+#Cleaning up
+.PHONY: cleanup
+cleanup:
+	make delete_acm
+	rm arn.txt downloaded-client-config.ovpn
+	rm -rf easy-rsa
+
 #cert $(VPN_CONNETION_PATH)/easy-rsa/easyrsa3/pki/issued/client1.domain.tld.crt
 #key $(VPN_CONNETION_PATH)/easy-rsa/easyrsa3/pki/private/client1.domain.tld.key
 
