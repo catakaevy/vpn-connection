@@ -16,7 +16,8 @@ build:
 	cd easy-rsa/easyrsa3 && pwd && ./easyrsa build-ca nopass
 	cd easy-rsa/easyrsa3 && pwd && ./easyrsa build-server-full server nopass
 	cd easy-rsa/easyrsa3 && pwd && ./easyrsa build-client-full client1.domain.tld nopass
-	cd easy-rsa/easyrsa3 && pwd && aws acm import-certificate --certificate fileb://pki/issued/server.crt --private-key fileb://pki/private/server.key --certificate-chain fileb://pki/ca.crt > arnmemo.txt
+	cd easy-rsa/easyrsa3 && pwd && aws acm import-certificate --certificate fileb://pki/issued/server.crt --private-key fileb://pki/private/server.key --certificate-chain fileb://pki/ca.crt > arnmemo.json
+	python arn_catch.py
 
 #Cleaning directory after generating key
 .PHONY: clean
@@ -25,9 +26,8 @@ clean:
 
 #Deleting server-side certificate that you created here in aws with this key
 .PHONY: delete_acm
-delete1:
-	aws acm delete-certificate --certificate-arn 
-	aws acm delete-certificate --certificate-arn
+delete_acm:
+	aws acm delete-certificate --certificate-arn $(shell cat arn.txt)
 #.PHONY: delete2
 #delete2:
 #	aws acm delete-certificate --certificate-arn $(shell sed -l 84 $(
