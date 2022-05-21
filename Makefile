@@ -26,8 +26,8 @@ clean:
 #Deleting server-side certificate that you created here in aws with this key
 .PHONY: delete_acm
 delete1:
-	aws acm delete-certificate --certificate-arn arn:aws:acm:ap-northeast-1:112945414377:certificate/8c6c9571-a038-4268-a5b7-f96fcb9d8e34
-	aws acm delete-certificate --certificate-arn arn:aws:acm:ap-northeast-1:112945414377:certificate/e5fa1d66-cbe5-43ab-b5a8-4ddb01e1870a
+	aws acm delete-certificate --certificate-arn 
+	aws acm delete-certificate --certificate-arn
 #.PHONY: delete2
 #delete2:
 #	aws acm delete-certificate --certificate-arn $(shell sed -l 84 $(
