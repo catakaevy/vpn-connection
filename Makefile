@@ -10,14 +10,13 @@ region:
 
 #Generating init-pki and Building CA and Sv&Cl key-pairs | if you want to change the region, use this "export AWS_DEFAULT_REGION=us-west-2"
 .PHONY: build
-build:
-	make start
+build: start
 	cd easy-rsa/easyrsa3 && pwd && ./easyrsa init-pki
 	cd easy-rsa/easyrsa3 && pwd && ./easyrsa build-ca nopass
 	cd easy-rsa/easyrsa3 && pwd && ./easyrsa build-server-full server nopass
 	cd easy-rsa/easyrsa3 && pwd && ./easyrsa build-client-full client1.domain.tld nopass
 	cd easy-rsa/easyrsa3 && pwd && aws acm import-certificate --certificate fileb://pki/issued/server.crt --private-key fileb://pki/private/server.key --certificate-chain fileb://pki/ca.crt > arnmemo.json
-	pwd && python3 catch_arn.py
+	cat easy-rsa/easyrsa3/arnmemo.json | jq -r '.CertificateArn' > arn.txt
 
 #Cleaning directory after generating key
 .PHONY: clean
@@ -45,8 +44,7 @@ mv_set:
 
 #Cleaning up
 .PHONY: cleanup
-cleanup:
-	make delete_acm
+cleanup: delete_acm
 	rm arn.txt downloaded-client-config.ovpn
 	rm -rf easy-rsa
 
