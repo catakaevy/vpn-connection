@@ -28,15 +28,22 @@ clean:
 delete_acm:
 	aws acm delete-certificate --certificate-arn $(shell cat arn.txt)
 
-#Building Clinent-VPN Endpoint in aws
+#Building Clinent-VPN Endpoint and set up with subnet and internet connection in aws | last part is still required to fix
 .PHONY: endpoint
 endpoint:
 	aws ec2 create-client-vpn-endpoint \
 		--client-cidr-block $(CIDR_BLK) \
 		--server-certificate-arn $(shell cat arn.txt) \
 		--authentication-options Type=certificate-authentication,MutualAuthentication={ClientRootCertificateChainArn=$(shell cat arn.txt)} \
-		--connection-log-options Enabled=false
-
+		--connection-log-options Enabled=false > endpointId.txt
+		cat endpointId.txt | jq -r '.ClientVpnEndpointId' > endpoint.txt
+	aws ec2 associate-client-vpn-target-network \
+    --subnet-id $(SUBNET_ID) \
+    --client-vpn-endpoint-id $(shell cat endpoint.txt)
+	aws ec2 authorize-client-vpn-ingress \
+	--client-vpn-endpoint-id $(shell cat endpoint.txt) \
+	--target-network-cidr 10.0.0.0/16 \
+	--authorize-all-groups
 #Moving downloaded-client-config.ovpn to the right directory
 .PHONY: mv_set
 mv_set:
