@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  This is Root Stack Template for ClientVPN Setup 
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: client-vpn
+  ServerCertificateArn:
+    Type: String
+    Default: YourServerCertInACM
+  ClientCertificateArn:
+    Type: String
+    Default: YourClientCertInACM
+  TemplateS3BucketName:
+    Type: String
+    Default: ""
+  VPCFileName:
+    Type: String
+    Default: "VPCSetup.yml"
+  KeyPairFileName:
+    Type: String
+    Default: "KeyPair.yml"
+  EC2FileName:
+    Type: String
+    Default: "BationEC2.yml"
+  ClientVPNFileName:
+    Type: String
+    Default: "ClientVPNEndpoint.yml"
+  
+  VPCCidr:
+    Type: String
+    Default: 10.10.0.0/24 
+
+  PublicSubnetCidr:
+    Type: String
+    Default: 10.10.0.0/27
+
+Resources:
+  VPC: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateS3BucketName}.s3.${AWS::Region}.amazonaws.com/${VPCFileName}"
+      Parameters:
+        ProjectName: !Ref ProjectName
+        VPCCidr: !Ref VPCCidr
+        PublicSubnetCidr: !Ref PublicSubnetCidr
+
+  KeyPair: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateS3BucketName}.s3.${AWS::Region}.amazonaws.com/${KeyPairFileName}"
+      Parameters:
+        ProjectName: !Ref ProjectName
+
+  ClientVPN:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateS3BucketName}.s3.${AWS::Region}.amazonaws.com/${ClientVPNFileName}"
+      Parameters:
+        ProjectName: !Ref ProjectName
+        VPCCidr: !Ref VPCCidr
+        ServerCertArn: !Ref ServerCertificateArn
+        ClientCertArn: !Ref ClientCertificateArn
+        VpcId: !GetAtt VPC.Outputs.VPCId
+        SubnetId: !GetAtt VPC.Outputs.SubnetId
+        ClientVPNEndpointSecurityGroup: !GetAtt VPC.Outputs.VPNEndpointSGId
+
+  EC2:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateS3BucketName}.s3.${AWS::Region}.amazonaws.com/${EC2FileName}"
+      Parameters:
+        ProjectName: !Ref ProjectName
+        SubnetId: !GetAtt VPC.Outputs.SubnetId
+        BastionSecurityGroup: !GetAtt VPC.Outputs.VPNServerSGId
+        KeyPair: !GetAtt KeyPair.Outputs.KeyName

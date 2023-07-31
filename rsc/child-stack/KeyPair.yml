@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  ProjectName:
+    Type: String
+
+# ------------------------------------------------------------#
+# Create KeyPair
+# ------------------------------------------------------------# 
+Resources:
+  KeyPair1:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName:  !Sub ${ProjectName}-KeyPair
+
+Outputs:
+  KeyName:
+    Value: !Ref KeyPair1

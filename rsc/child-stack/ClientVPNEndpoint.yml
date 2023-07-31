@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  This is for Client VPN Endpoint
+
+Parameters: 
+  ProjectName:
+    Type: String
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  ClientCertArn:
+    Type: String
+  ServerCertArn: 
+    Type: String
+  ClientVPNEndpointSecurityGroup:
+    Type: String
+  ClientCidr:
+    Type: String
+    Default: 192.168.0.0/22
+  VPCCidr:
+    Type: String
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+  
+Resources: 
+  ClientVPNEndpoint:
+    Type: AWS::EC2::ClientVpnEndpoint
+    Properties: 
+      AuthenticationOptions: 
+      - Type: certificate-authentication
+        MutualAuthentication:
+          ClientRootCertificateChainArn: !Ref ClientCertArn
+      ClientCidrBlock: !Ref ClientCidr
+      # ClientConnectOptions: 
+      ClientLoginBannerOptions: 
+        BannerText: !Sub "You are Connecting in ${AWS::Region}"
+        Enabled: true
+      ConnectionLogOptions: 
+        Enabled: false
+      Description: !Sub This is ClientVPN Connection in ${AWS::Region}
+      # DnsServers: 
+      SecurityGroupIds: 
+        - !Ref ClientVPNEndpointSecurityGroup
+      SelfServicePortal: enabled
+      ServerCertificateArn: !Ref ServerCertArn
+      SessionTimeoutHours: 24
+      SplitTunnel: true
+      TagSpecifications: 
+        - ResourceType: client-vpn-endpoint
+          Tags:
+          - Value: Name
+            Key: !Sub ${ProjectName}-ClientVPNIn-${AWS::Region}
+      TransportProtocol: udp
+      VpcId: !Ref VpcId
+      VpnPort: 443
+
+  ClientVPNAssociation:
+    Type: AWS::EC2::ClientVpnTargetNetworkAssociation
+    Properties: 
+      ClientVpnEndpointId: !Ref ClientVPNEndpoint
+      SubnetId: !Ref SubnetId
+  
+  ClientVPNAuthRule:
+    Type: AWS::EC2::ClientVpnAuthorizationRule
+    Properties: 
+      # AccessGroupId: String
+      AuthorizeAllGroups: true
+      ClientVpnEndpointId: !Ref ClientVPNEndpoint
+      Description: This is auth rule for VPNEndpoint
+      TargetNetworkCidr: !Ref VPCCidr

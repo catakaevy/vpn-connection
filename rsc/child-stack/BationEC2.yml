@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  This Stack is for Windows Ec2 server to be connected via Client VPN
+
+Parameters: 
+  ProjectName:
+    Type: String
+  SubnetId:
+    Type: String
+  Windows2022Ami:
+    Type : AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-windows-latest/Windows_Server-2022-Japanese-Full-Base
+  BastionEc2InstanceType:
+    Type: String
+    Default: t3.small
+  BastionSecurityGroup:
+    Type: String
+  KeyPair:
+    Type: String
+
+Resources:
+# ------------------------------------------------------------#
+# EC2 settings
+# ------------------------------------------------------------# 
+  EC2IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-SSM-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - Ref: EC2IAMRole
+      InstanceProfileName: !Sub ${ProjectName}-EC2InstanceProfile
+
+# ------------------------------------------------------------#
+# Create EC2 Instance
+# ------------------------------------------------------------# 
+  EC2Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      NetworkInterfaces:
+        - SubnetId: !Ref SubnetId
+          GroupSet:
+            - !Ref BastionSecurityGroup
+          AssociatePublicIpAddress: true
+          DeviceIndex : 0
+      InstanceType: !Ref BastionEc2InstanceType
+      ImageId: !Ref Windows2022Ami
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      BlockDeviceMappings: 
+      - DeviceName: '/dev/sda1'
+        Ebs: 
+          VolumeSize: 50
+          VolumeType: 'gp3'
+          Encrypted: true
+      KeyName: !Ref KeyPair
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName}-Bastion
+      UserData:
+        Fn::Base64: |
+          <powershell>
+          # SSM Agent
+          $dir = $env:TEMP + "\ssm"
+          New-Item -ItemType directory -Path $dir -Force
+          cd $dir
+          (New-Object System.Net.WebClient).DownloadFile("https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/windows_amd64/AmazonSSMAgentSetup.exe", $dir + "\AmazonSSMAgentSetup.exe")
+          Start-Process .\AmazonSSMAgentSetup.exe -ArgumentList @("/q", "/log", "install.log") -Wait
+
+          # set timezone
+          Set-TimeZone -Id "Tokyo Standard Time"
+          </powershell>
