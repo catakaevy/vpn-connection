@@ -1,0 +1,163 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  This is VPC Network Set up for VPN Env
+
+Parameters: 
+  ProjectName:
+    Type: String
+
+  #VPC CIDR Info
+  VPCCidr:
+    Type: String
+    Default: Your Private Network CIDR
+
+  PublicSubnetCidr:
+    Type: String
+    Default: Your Public Subnet CIDR
+
+Resources: 
+# ------------------------------------------------------------#
+# Create VPC
+# ------------------------------------------------------------# 
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-VPC
+# ------------------------------------------------------------#
+# Create InternetGateway
+# ------------------------------------------------------------# 
+  InternetGateway: 
+    Type: "AWS::EC2::InternetGateway"
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-igw"
+
+  InternetGatewayAttachment: 
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties: 
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC 
+# ------------------------------------------------------------#
+# Create Subnet
+# ------------------------------------------------------------# 
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select 
+        - 0
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: !Ref PublicSubnetCidr
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-PublicSubnet
+
+# ------------------------------------------------------------#
+# Create RouteTable & Routing & RouteAssociation
+# ------------------------------------------------------------# 
+  PublicVPNRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-RouteTable
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicVPNRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicRouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicVPNRouteTable
+
+# ------------------------------------------------------------#
+# Create SecurityGroup (for EC2 and VPN Endpoint)
+# ------------------------------------------------------------# 
+  VPNConnectionServerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: VPNConnectionServerSG 
+      GroupDescription: SecurityGroup for VPNConnectionServer
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - IpProtocol: tcp 
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp 
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: VPNConnectionServerSG
+
+  FromVPNSGRDPAllowIngressRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties: 
+      Description: String
+      FromPort: 3389
+      ToPort: 3389
+      IpProtocol: -1
+      GroupId: !GetAtt VPNConnectionServerSG.GroupId
+      SourceSecurityGroupId: !GetAtt ClientVPNEndpointSG.GroupId
+
+  ClientVPNEndpointSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ClientVPNEndpointSG
+      GroupDescription: SecurityGroup for ClientVPNEndpoint
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - IpProtocol: -1 
+          CidrIp: 127.0.0.1/32
+      Tags:
+        - Key: Name
+          Value: ClientVPNEndpointSG
+
+  ToBationServerSGRDPAllowEgressRule:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties: 
+      Description: avoid the circular dependency
+      DestinationSecurityGroupId: !GetAtt VPNConnectionServerSG.GroupId
+      FromPort: 3389
+      ToPort: 3389
+      GroupId: !GetAtt ClientVPNEndpointSG.GroupId
+      IpProtocol: -1
+
+Outputs:
+  VPCId:
+    Description: VPC id for this project
+    Value: !Ref VPC
+    Export:
+      Name: VPCId
+    
+  SubnetId:
+    Description: Subnet id for this project
+    Value: !Ref PublicSubnet 
+    Export:
+      Name: SubnetId
+
+  VPNServerSGId:
+    Description: SG for VPNServer
+    Value: !GetAtt VPNConnectionServerSG.GroupId 
+    Export: 
+      Name: VPNServerSGId
+
+  VPNEndpointSGId:
+    Description: SG for VPNEndpoint
+    Value: !GetAtt ClientVPNEndpointSG.GroupId 
+    Export: 
+      Name: VPNEndpointSGID
