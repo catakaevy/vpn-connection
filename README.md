@@ -55,7 +55,7 @@ Any third Party software works but I tend to use AWS Client like this
 **7.Connect to the sever(EC2) you created in the different region**
 Use the private IP address that is assigned by AWS and check it in the EC2 Console
 
-##Reference
+## Reference
 - Nice Website
 https://blog.grasys.io/post/ysato/aws-client-vpn/
 
