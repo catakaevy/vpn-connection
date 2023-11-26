@@ -23,6 +23,7 @@ Check the list (Logical ID at the CloudFormation Console):
 - KeyPair
 - EC2
 - ClientVPN
+just like this message
 ![test](./images/cfnstatus.png)
 
 **3. Download the VPN file from Client VPN Endpoint (VPC) console**
@@ -54,6 +55,7 @@ Any third Party software works but I tend to use AWS Client like this
 **7.Connect to the sever(EC2) you created in the different region**
 Use the private IP address that is assigned by AWS and check it in the EC2 Console
 
-###Referrence
+##Reference
+- Nice Website
 https://blog.grasys.io/post/ysato/aws-client-vpn/
 
