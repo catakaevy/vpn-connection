@@ -23,7 +23,9 @@ Check the list (Logical ID at the CloudFormation Console):
 - KeyPair
 - EC2
 - ClientVPN
+
 just like this message
+
 ![test](./images/cfnstatus.png)
 
 **3. Download the VPN file from Client VPN Endpoint (VPC) console**
@@ -45,6 +47,7 @@ Copy from
 ```
 **5. Activate the AWS Client VPN software**
 Any third Party software works but I tend to use AWS Client like this
+
 ![vpnsoft](./images/vpnfilesetup.png)
 
 **6. Getting the PW from Keypair Keyboard in AWS console**
@@ -56,6 +59,7 @@ Any third Party software works but I tend to use AWS Client like this
 Use the private IP address that is assigned by AWS and check it in the EC2 Console
 
 ## Reference
+
 - Nice Website
 https://blog.grasys.io/post/ysato/aws-client-vpn/
 
