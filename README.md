@@ -63,7 +63,7 @@ Any third Party software works but I tend to use AWS Client like this
 
 Use the private IP address that is assigned by AWS and check it in the EC2 Console
 
-**8. Delete the Stack in AWS**
+**9. Delete the Stack in AWS**
 
 Be careful! If you don't do this, AWS charges you for the usage of fee.
 
